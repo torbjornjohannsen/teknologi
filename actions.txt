@@ -1,0 +1,8 @@
+on 0 
+ON 0 
+off 3 
+OFF 3 
+die 1 
+DIE 1 
+kill 1 
+KILL 1

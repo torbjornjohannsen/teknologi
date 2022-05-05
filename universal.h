@@ -12,7 +12,7 @@ typedef int SOCKET;
 #define INVALID_SOCKET -1
 #define closesocket(s) close(s)
 #define gangport 4200
-#define max_Port 20
+#define max_Port 27
 
 typedef struct 
 {
@@ -25,12 +25,18 @@ typedef struct {
     int16_t code;  
 } translate_Key;
 
+typedef struct {
+    int16_t num; 
+    char name[16]; 
+} Port; 
+
 //Actions
 // a message has the following format: 
 // ACTION PORT_NUM 
-#define act_switchPort 0 // changes a port from low to high or vice versa
+#define act_turnOn 0 // changes a port to high
 #define act_disconnect 1 // tells the other side youre closing the connection, port num is irrelevent
 #define act_confirmation 2 // tells the other side you got the last msg and ready for another, port ignored
+#define act_turnOff 3 // changes a port to low
 
 // ERROR CODES 
 #define err_MsgTooLong -1 
@@ -46,9 +52,9 @@ int RecieveAndConfirm(SOCKET conn, Message *msg);
 int GetConfirm(SOCKET conn); 
 
 // caveman method
-#define keyAmt 3
-translate_Key* keys; 
-void SetupKeys(); 
+void SetupKeys(translate_Key** tKeys); 
 
-int Translate(Message *out, char *in, int inLen); 
+void SetupPorts(Port** ports); 
+
+int Translate(Message *out, char *in, int inLen, translate_Key *keyArr, Port *portArr); 
 

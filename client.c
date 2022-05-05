@@ -1,12 +1,20 @@
 #include "universal.h"
 
-int main(void)
+int main(int argc, char* argv[])
 {
+    if(argc != 2) {
+        printf("Usage: client.out server_IP\nExample: ./client.out 192.168.0.19\n"); 
+        return 1; 
+    }
+
     SOCKET sockfd = INVALID_SOCKET;
     int n = 0;
     char recvBuff[64]; // to fit better within the Ethernet MTU
     struct sockaddr_in serv_addr;
-    SetupKeys(); 
+    translate_Key* tKeys; 
+    SetupKeys(&tKeys); 
+    Port* ports;
+    SetupPorts(&ports);
 
     memset(recvBuff, 0, sizeof(recvBuff));
     if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
@@ -17,7 +25,7 @@ int main(void)
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(gangport);
-    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serv_addr.sin_addr.s_addr = inet_addr(argv[1]);
 
     if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)))
     {
@@ -39,9 +47,9 @@ int main(void)
         printf("Server ready to recieve, type your command:\n"); 
 
 GetMsg: 
-        gets(msgBuf); 
-
-        if(Translate(msg, msgBuf, sizeof(msgBuf)) != rsp_Normal) {
+        fgets(msgBuf, sizeof(msgBuf), stdin); 
+        //printf("keys: %d and ports: %d\n", tKeys, ports); 
+        if(Translate(msg, msgBuf, sizeof(msgBuf), tKeys, ports) != rsp_Normal) {
             printf("Invalid input you dingus, try again:\n"); 
             goto GetMsg; 
         } 
