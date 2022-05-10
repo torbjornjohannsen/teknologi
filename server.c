@@ -1,4 +1,30 @@
 #include "universal.h"
+#include <pthread.h>
+
+int runloops = 1; 
+
+typedef struct {
+    int port; 
+    int interval;
+} argStruct; 
+
+void *RunLoop(void *args) 
+{
+    argStruct* info = args; 
+    char action1[32], action2[32]; 
+    sprintf(action1, "raspi-gpio set %d dh", info->port); 
+    sprintf(action2, "raspi-gpio set %d dl", info->port); 
+    printf("%s\n", action1);
+    printf("%s\n", action2);
+    while(runloops)
+    {
+        system(action1); 
+        usleep(info->interval * 1000); 
+        system(action2);
+        usleep(info->interval * 1000); 
+        printf("Completed cycle\n");
+    }
+}
 
 int main(void)
 {
@@ -31,6 +57,7 @@ int main(void)
     }
     while(1)
     {
+        runloops = 1; 
         connfd = accept(listenfd, (struct sockaddr*)NULL ,NULL); // accept awaiting request
     
         send(connfd, "2", sizeof("2"), 0); 
@@ -43,8 +70,12 @@ int main(void)
                 break; 
             } 
 
-            
-            char action[32];
+            pthread_t tId; 
+            argStruct args; 
+            args.interval = 500; 
+            args.port = 18; 
+            pthread_create(&tId, NULL, RunLoop, &args); 
+            /* char action[32];
             switch (msg->action)
             {
             case act_turnOn:
@@ -62,14 +93,14 @@ int main(void)
                 break;
             }
             system(action); 
-            printf("Executing: \"%s\"\n", action); 
+            printf("Executing: \"%s\"\n", action);  */
             if(msg->action == act_disconnect) { break; }
             sleep(1);
         }
 
         shutdown(connfd, 2);  // shutdown input and output streams, i.e. close TCP connection
         closesocket(connfd);  // free fd
+        runloops = 0; 
     }
-
     return 0;
 }
