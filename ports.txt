@@ -1,3 +1,7 @@
-green 18 
-red 21 
-yellow 17
+green 18
+stepper 21 
+stepDir 27
+yellow 17 
+blue 4 
+click 12 
+test 25

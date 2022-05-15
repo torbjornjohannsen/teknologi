@@ -1,3 +1,4 @@
+#!/bin/sh
 gcc -o client.out client.c universal.c
 echo "//////////////////////////
 /                        /

@@ -8,11 +8,11 @@ void SetupKeys(translate_Key **tKeys)
     buffer = malloc(sizeof(char) * 64);
     size_t sBuffer = sizeof(buffer);
     translate_Key pBuff[64];
-    int read, c = 0;
+    int c = 0;
 
     while (feof(file) == 0)
     {
-        read = getline(&buffer, &sBuffer, file);
+        getline(&buffer, &sBuffer, file);
         sscanf(buffer, "%s %hd", pBuff[c].text, &pBuff[c].code);
         c++;
         //printf("%s -> %hd %s\n", buffer, pBuff[c - 1].num, pBuff[c - 1].name);
@@ -29,7 +29,6 @@ void SetupKeys(translate_Key **tKeys)
 
 int RecieveAndConfirm(SOCKET conn, Message *msg)
 {
-
     char buffer[128];
     int recievedAmt = recv(conn, buffer, sizeof(buffer) - 1, 0);
 
@@ -40,7 +39,7 @@ int RecieveAndConfirm(SOCKET conn, Message *msg)
 
     buffer[recievedAmt] = 0;
 
-    if (sscanf(buffer, "%hd %hd", &msg->action, &msg->port) < 1)
+    if (sscanf(buffer, "%hd %hd %d %d", &msg->action, &msg->port, &msg->amt, &msg->time) < 1)
     {
         return rsp_Invalid;
     }
@@ -66,7 +65,7 @@ int GetConfirm(SOCKET conn)
 
     if (sscanf(buffer, "%d", &code) < 1 || code != act_confirmation)
     {
-        return rsp_Invalid;
+        return code;
     }
 
     return rsp_Normal;
@@ -74,11 +73,9 @@ int GetConfirm(SOCKET conn)
 
 int Translate(Message *out, char *in, int inLen, translate_Key *keyArr, Port *portArr)
 {
-    char buff1[16], buff2[16];
-    
-    //printf("keys: %d and ports: %d\n", keyArr, portArr); 
+    char buff1[32];
 
-    if (sscanf(in, "%s %s", buff1, buff2) < 1)
+    if (sscanf(in, "%s", buff1) < 1)
     {
         return rsp_Invalid;
     }
@@ -94,14 +91,51 @@ int Translate(Message *out, char *in, int inLen, translate_Key *keyArr, Port *po
         i++; 
     }
     if(c > 0) { return rsp_Invalid; }
-    while (portArr[c].num >= 0)
+    
+    char buff2[32], buff3[32];
+    switch (out->action)
     {
-        if (strcmp(buff2, portArr[c].name) == 0)
+    case act_turnOn:
+    case act_turnOff:
+        sscanf(in, "%s %s", buff1, buff2); 
+        break; 
+    case act_rotate: 
+        sscanf(in, "%s %s %d %d", buff1, buff2, &out->time, &out->amt); 
+        break; 
+    case act_turnForDuration: 
+        sscanf(in, "%s %s %d", buff1, buff2, &out->time); 
+        break;
+    case act_wait: 
+        sscanf(in, "%s %d", buff1, &out->time); 
+        return rsp_Normal;  
+    case act_get: 
+        sscanf(in, "%s %s %s", buff1, buff2, buff3); 
+        i = 0; 
+        while(portArr[i].num >= 0)
         {
-            out->port = portArr[c].num;
-            return rsp_Normal;
+            if (strcmp(buff3, portArr[i].name) == 0)
+            {
+                out->amt = portArr[i].num;
+                c = 0; 
+                break;
+            }
+            i++; 
         }
-        c++; 
+        break; 
+    default:
+        return rsp_Invalid; 
+        break;
+    }
+    i = 0; 
+    while(portArr[i].num >= 0)
+    {
+        //printf("%d : %s = %s\n", i, buff2, portArr[i].name);
+        if(strcmp(buff2, portArr[i].name) == 0)
+        {
+            out->port = portArr[i].num; 
+            return rsp_Normal; 
+        }
+        i++; 
     }
 
     return rsp_Invalid;
@@ -120,6 +154,7 @@ void SetupPorts(Port **ports)
     while (feof(file) == 0)
     {
         read = getline(&buffer, &sBuffer, file);
+        if(read <= 0) { break; }
         sscanf(buffer, "%s %hd", pBuff[c].name, &pBuff[c].num);
         c++;
         //printf("%s -> %hd %s\n", buffer, pBuff[c - 1].num, pBuff[c - 1].name);
@@ -127,7 +162,9 @@ void SetupPorts(Port **ports)
     Port* portArr = malloc(sizeof(Port) * (c + 1));
     for (int i = 0; i < c; i++)
     {
-        portArr[i] = pBuff[i - 1];
+        strcpy(portArr[i].name, pBuff[i].name);
+        portArr[i].num = pBuff[i].num;
+        //printf("%d/%d : %hd %s\n", i, c, pBuff[i].num, pBuff[i].name);
     }
 
     portArr[c].num = -1;

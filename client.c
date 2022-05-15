@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    char msgBuf[64]; 
+    char msgBuf[128]; 
     Message* msg;
     msg = malloc(sizeof(Message));
     int bytesLeft = 0, t_bytesSent = 0; 
@@ -48,16 +48,15 @@ int main(int argc, char* argv[])
 
 GetMsg: 
         fgets(msgBuf, sizeof(msgBuf), stdin); 
-        //printf("keys: %d and ports: %d\n", tKeys, ports); 
         if(Translate(msg, msgBuf, sizeof(msgBuf), tKeys, ports) != rsp_Normal) {
             printf("Invalid input you dingus, try again:\n"); 
             goto GetMsg; 
         } 
 
-        sprintf(recvBuff, "%d %d", msg->action, msg->port); 
+        sprintf(recvBuff, "%d %d %d %d", msg->action, msg->port, msg->amt, msg->time); 
 
         int sentBytes = send(sockfd, recvBuff, sizeof(recvBuff), 0);
-        printf("Sent: %d\n", sentBytes);
+        printf("Sent: %s\n", recvBuff);
 
         sleep(1);
     } 

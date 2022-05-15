@@ -1,0 +1,10 @@
+get click blue
+ON green
+OFF stepDir
+WAIT 1000
+TURN yellow 5000
+WAIT 2500
+ROTATE stepper 50 500
+WAIT 3000
+ON stepDir
+WAIT 7500
