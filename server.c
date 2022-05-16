@@ -50,7 +50,6 @@ typedef struct {
     int port; 
     int actPort;
     int* on; 
-    int* changed; 
 } monitorArgs; 
 
 void *MonitorPort(void *args)
@@ -91,12 +90,8 @@ int ExecuteCommand(Message *msg, int* amtMPorts, pthread_t* tNum, int *monitored
     switch (msg->action)
     {
     case act_turnOn:
-        sprintf(action, "raspi-gpio set %d dh", msg->port); 
-        system(action); 
-        printf("Executing: \"%s\"\n", action);  
-        break;
     case act_turnOff:
-        sprintf(action, "raspi-gpio set %d dl", msg->port); 
+        sprintf(action, "raspi-gpio set %d %s", msg->port, msg->action == act_turnOn ? "dh" : "dl"); 
         system(action); 
         printf("Executing: \"%s\"\n", action);  
         break;
@@ -251,7 +246,7 @@ int main(int argc, char* argv[])
         {
             int read = getline(&buffer, &sBuffer, file);
             if(read <= 0) { break; }
-            if (Translate(msg, buffer, sizeof(buffer), tKeys, ports) != rsp_Normal)
+            if (Translate(msg, buffer, tKeys, ports) != rsp_Normal)
             {
                 printf("Wrong input from file: %s\n", buffer); 
                 continue;

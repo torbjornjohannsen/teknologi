@@ -71,7 +71,7 @@ int GetConfirm(SOCKET conn)
     return rsp_Normal;
 }
 
-int Translate(Message *out, char *in, int inLen, translate_Key *keyArr, Port *portArr)
+int Translate(Message *out, char *in, translate_Key *keyArr, Port *portArr)
 {
     char buff1[32];
 

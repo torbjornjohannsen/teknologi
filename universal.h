@@ -47,7 +47,6 @@ typedef struct {
 #define act_kill 7 // tells the server to shutdown
 #define act_wait 8 // tells the server to sleep x time in main thread. Other threads keep executing like normal 
 #define act_get 9 // tells the server to read the input of some port 
-#define act_runInstructions 10 // tells the server to follow the instructions file 
 
 // ERROR CODES 
 #define err_MsgTooLong -1 
@@ -66,5 +65,5 @@ void SetupKeys(translate_Key** tKeys);
 
 void SetupPorts(Port** ports); 
 
-int Translate(Message *out, char *in, int inLen, translate_Key *keyArr, Port *portArr); 
+int Translate(Message *out, char *in, translate_Key *keyArr, Port *portArr); 
 

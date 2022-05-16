@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 
 GetMsg: 
         fgets(msgBuf, sizeof(msgBuf), stdin); 
-        if(Translate(msg, msgBuf, sizeof(msgBuf), tKeys, ports) != rsp_Normal) {
+        if(Translate(msg, msgBuf, tKeys, ports) != rsp_Normal) {
             printf("Invalid input you dingus, try again:\n"); 
             goto GetMsg; 
         } 
